@@ -1,10 +1,28 @@
 /*eslint-disable no-unused-params, no-redeclare, no-unused-vars*/
+/*globals var */
 const Discord = require('discord.js');
+const YTDL = require('ytdl-core');
+const fs = require("fs");
 const client = new Discord.Client();
 client.on('ready', () => {
     client.user.setPresence({ game: { name: '&help || cookies', type: 0 } });
-    console.log('Bot is ready to explore a new world!');
-function play (connection, message) {
+    console.log('Bot is ready to explore a new wolrd!');
+});
+    
+    function play(connection, message) {
+        var servers = {};
+        var server = server[message.guild.id];
+               
+    server.dispatcher = connection.playStream(YTDL(server.queue[0], {filter: "audioonly"}));
+    
+    server.queue.shift();
+    
+    server.dispatcher.on("end", function() {
+        if (server.queue[0]) play(connection, message);
+        else connection.disconnect();
+    });
+}
+
 var prefix = '&';
 client.on('message', message => {
     var args = message.content.substring(prefix.length).split(" ");
@@ -19,7 +37,7 @@ client.on('message', message => {
         case "cookie":
             message.reply('COOOKIESSSS!');
             break;
-        case "play":
+        case "gplay":
             var gamestr = args.join(" ").replace("play ", "");
             if (message.author.id === "378998523028307973" || message.author.id === "353271087758573578") {
                 client.user.setPresence({ game: { name: gamestr, type: 0 } });
@@ -72,6 +90,7 @@ client.on('message', message => {
                         .addField("**Info**", "Prints information about a user. \nUsage: info [@mention]", true)
                         .addField("**Commands for help**", "avatar, help, info, purge", true)
                         .addField("**Сommands for entertainment**", "ping, bing, 8ball", true)
+                        .addField('**Music Help Console**', "join, leave, play, stop, skip")
                         .setAuthor('Sonex', client.user.avatarURL)
                         .setColor('#ffffff');
                     message.channel.send({ embed });
@@ -81,7 +100,7 @@ client.on('message', message => {
         case "info":
             var user = message.mentions.users.first() || message.author;
             var embed = new Discord.RichEmbed()
-                .setThumbnail(user.displayAvatarURL)
+                .setThumbnail(user.avatarURL)
                 .setColor('ffffff')
                 .addField('ID', user.id, true)
                 .addField('Username', user.username, true)
@@ -94,7 +113,7 @@ client.on('message', message => {
         case "purge":
             if (isNaN(args[1])) return message.channel.send('**Please supply a valid amount of messages to purge**');
             if (args[1] > 100) return message.channel.send('**Please supply a number less than 100**');
-            message.channel.bulkDelete(args[1]+1);
+            message.channel.bulkDelete(args[1] + 1);
             break;
         case "serverinfo":
             var online = message.guild.members.filter(member => member.user.presence.status !== 'offline');
@@ -104,8 +123,8 @@ client.on('message', message => {
             var sicon = message.guild.iconURL;
             var embed = new Discord.RichEmbed()
                 .setAuthor(message.guild.name, sicon)
-                .setFooter('Server Created • ' + month + "." + day + "." + year )
-                .setColor('#ffffff')
+                .setFooter('Server Created • ' + month + "." + day + "." + year)
+                .setColor('ffffff')
                 .setThumbnail(sicon)
                 .addField('ID', message.guild.id, true)
                 .addField('Name', message.guild.name, true)
@@ -119,19 +138,60 @@ client.on('message', message => {
                 .addField('Roles', message.guild.roles.size, true);
             message.channel.send({ embed });
             break;
-          case "join":
+        case "join":
     if (message.member.voiceChannel) {
       message.member.voiceChannel.join()
-        .then(connection => {
-          message.reply('I have successfully connected to the channel!');
+        .then(connection => { // Connection is an instance of VoiceConnection
+          message.channel.sendMessage('**I have successfully connected to the channel!**');
         })
         .catch(console.log);
     } else {
-      message.reply('You need to join a voice channel first!');
-       }
-           break;
-        default:
+      message.channel.sendMessage('**You need to join a voice channel first!**');
+    }
         break;
-      }
+        case "play":
+        var servers = {};
+        var server = servers[message.guild.id];
+    if (!args [1]) {
+        message.channel.sendMessage('**Please provide a link!**');
+        return;
+    }
+    
+    if (!message.member.voiceChannel) {
+        message.channel.sendMessage('**You must be in a voice channel first!**');
+    }
+    
+    if (!servers[message.guild.id]) servers[message.guild.id] = {
+        queue: []
+    };
+    
+    var server = servers[message.guild.id];
+    
+    if (!message.guild.voiceConnection) message.member.voiceChannel.join().then(function(connection) {
+        play(connection, message);
+        
+    });
+        break;
+        case "skip":
+        var servers = {};
+        var server = servers[message.guild.id];
+        
+        if (server.dispatcher) server.dispatcher.end();
+        break;
+        case "stop":
+        var servers = {};
+        var server = servers[message.gud];
+        
+        if (message.guild.voiceConnection) message.guild.voiceConnection.disconnect();
+        break;
+        case "leave":
+    if (message.member.voiceChannel) {
+        message.member.voiceChannel.leave();
+    }
+
+        break;
+        default:
+        message.channel.sendMessage('**Invalid command**');
+    }
 });
 client.login(process.argv[2]);
