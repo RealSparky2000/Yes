@@ -1,16 +1,16 @@
 /*eslint-disable no-unused-params, no-redeclare, no-unused-vars*/
-/*globals var */
+/*globals var messages*/
 const Discord = require('discord.js');
 const YTDL = require('ytdl-core');
 const fs = require("fs");
 const client = new Discord.Client();
+var servers = {};
 client.on('ready', () => {
     client.user.setPresence({ game: { name: '&help || cookies', type: 0 } });
     console.log('Bot is ready to explore a new wolrd!');
 });
     
     function play(connection, message) {
-        var servers = {};
         var server = server[message.guild.id];
                
     server.dispatcher = connection.playStream(YTDL(server.queue[0], {filter: "audioonly"}));
@@ -29,13 +29,13 @@ client.on('message', message => {
     if (!message.content.startsWith(prefix)) return;
     switch (args[0].toLowerCase()) {
         case "ping":
-            message.reply('PONG!');
+            message.channel.sendMessage('**PONG!**');
             break;
         case "bing":
-            message.reply('BONG!');
+            message.channel.sendMessage('**BONG!**');
             break;
         case "cookie":
-            message.reply('COOOKIESSSS!');
+            message.channel.sendMessage('**COOOKIESSSS!**');
             break;
         case "gplay":
             var gamestr = args.join(" ").replace("play ", "");
@@ -88,7 +88,7 @@ client.on('message', message => {
                         .addField("**Avatar**", "Displays user's pfp.", true)
                         .addField("**Help**", "Prints the help.", true)
                         .addField("**Info**", "Prints information about a user. \nUsage: info [@mention]", true)
-                        .addField("**Commands for help**", "avatar, help, info, purge", true)
+                        .addField("**Commands for help**", "avatar, help, info, clean", true)
                         .addField("**Сommands for entertainment**", "ping, bing, 8ball", true)
                         .addField('**Music Help Console**', "join, leave, play, stop, skip")
                         .setAuthor('Sonex', client.user.avatarURL)
@@ -110,10 +110,11 @@ client.on('message', message => {
                 .addField('Created At', user.createdAt, true);
             message.channel.send({ embed });
             break;
-        case "purge":
+        case "clean":
             if (isNaN(args[1])) return message.channel.send('**Please supply a valid amount of messages to purge**');
             if (args[1] > 100) return message.channel.send('**Please supply a number less than 100**');
-            message.channel.bulkDelete(args[1] + 1);
+            message.channel.bulkDelete(args[1]);
+            message.channel.sendMessage(`**Cleaned ${args[1]} messages** :white_check_mark:`);
             break;
         case "serverinfo":
             var online = message.guild.members.filter(member => member.user.presence.status !== 'offline');
@@ -167,9 +168,11 @@ client.on('message', message => {
     
     var server = servers[message.guild.id];
     
+    server.queue.push(args[1]);
+    
     if (!message.guild.voiceConnection) message.member.voiceChannel.join().then(function(connection) {
         play(connection, message);
-        
+    
     });
         break;
         case "skip":
