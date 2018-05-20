@@ -25,7 +25,7 @@ message.channel.send({embed: newemb})
 message.channel.send({embed: newemb})
             break;
         case "cookie":
-            message.channel.send("COOOKKIIIESSSSS!");
+            message.channel.sendMessage("COOOKKIIIESSSSS!");
             break;
         case "gplay":
             var gamestr = args.join(" ").replace("play ", "");
