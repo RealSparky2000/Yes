@@ -25,13 +25,7 @@ message.channel.send({embed: newemb})
 message.channel.send({embed: newemb})
             break;
         case "cookie":
-            var embed = new Discord.RichEmbed()
-            .setTitle("Sonex loves cookies")
-            .addField(`${message.author.username} has given ${user.username} a cookie! :cookie: `)
-            .setColor(0x00AE86)
-            .setFooter(fetched);
-             message.channel.send({ embed });
-            break;
+            message.channel.send("COOOKKIIIESSSSS!");
             break;
         case "gplay":
             var gamestr = args.join(" ").replace("play ", "");
