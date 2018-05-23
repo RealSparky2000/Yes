@@ -302,4 +302,4 @@ break;
         message.channel.sendMessage('**Invalid command**');
     }
 });
-client.login("NDQzNzIwMDEyMDk2NzMzMTg0.DeWsfQ.1J1kZTYNclJ3ZPNsnOmhCcj9xdA");
+client.login("token");
