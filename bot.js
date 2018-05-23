@@ -28,7 +28,7 @@ message.channel.send({embed: newemb})
         case "cookie":
             message.channel.sendMessage("COOOKKIIIESSSSS!");
             break;
-        case "gplay":
+        case "play":
             var gamestr = args.join(" ").replace("play ", "");
             if (message.author.id === "378998523028307973" || message.author.id === "353271087758573578") {
                 client.user.setPresence({ game: { name: gamestr, type: 0 } });
@@ -62,31 +62,18 @@ message.channel.send({embed: newemb})
                 .setTitle('The Sonex steals avatars :D')
                 .setDescription('[Avatar Link](' + user.avatarURL + ')')
                 .setImage(user.displayAvatarURL)
-                .setColor('#ffffff');
+                .setColor(0x00AE86);
             message.channel.send({ embed });
             break;
         case "help":
-            switch (args[1]) {
-                case "avatar":
-                    message.channel.send("Displays user's pfp.");
-                    break;
-                case "info":
-                    message.channel.send('Prints information about a user. \nUsage: info [@mention]');
-                    break;
-                default:
                     var embed = new Discord.RichEmbed()
-                        .setTitle('Help Console')
-                        .addField("**Avatar**", "Displays user's pfp.", true)
-                        .addField("**Help**", "Prints the help.", true)
-                        .addField("**Info**", "Prints information about a user. \nUsage: info [@mention]", true)
-                        .addField("**Commands for help**", "avatar, help, info, serverinfo, clean, weather", true)
-                        .addField("**Сommands for entertainment**", "ping, bing, 8ball, cat, dog", true)
-                        .addField("**Command for moderate**", "ban, kick, report")
+                        .addField('Help Commands', "```avatar, help, info, serverinfo, weather```", true)
+                        .addField('Entertainment Commands', "```ping, bing, 8ball, cat, dog```", true)
+                        .addField('Commands For Moderate', "```ban, kick, report, warn, clean, reload```", true)        
                         .setAuthor('Sonex', client.user.avatarURL)
+                        .setFooter(`Requested By ${message.author.username}#${message.author.discriminator}`)
                         .setColor(0x00AE86);
                     message.channel.send({ embed });
-                    break;
-                           }
             break;
         case "info":
             var user = message.mentions.users.first() || message.author;
@@ -151,7 +138,7 @@ message.channel.send({embed: newemb})
       }
       var current = result[0].current;
       var location = result[0].location;
-      const embed = new Discord.RichEmbed()
+      var embed = new Discord.RichEmbed()
           .setDescription(`**${current.skytext}**`)
           .setAuthor(`Weather for ${current.observationpoint}`)
           .setThumbnail(current.imageUrl)
@@ -197,8 +184,8 @@ message.channel.send({embed: newemb})
     .addField("Time", message.createdAt)
     .addField("Reason", rreason);
 
-    var reportschannel = message.guild.channels.find(`name`, "reports");
-    if(!reportschannel) return message.channel.send("**Can't find reports channel.**");
+    var reportschannel = message.guild.channels.find(`name`, "mod-log");
+    if(!reportschannel) return message.channel.send("**Can't find mod-log channel.**");
 
 
     message.delete().catch(O_o=>{});
@@ -222,8 +209,8 @@ message.channel.send({embed: newemb})
     .addField("Tiime", message.createdAt)
     .addField("Reason", kReason);
 
-    var kickChannel = message.guild.channels.find(`name`, "reports");
-    if(!kickChannel) return message.channel.send("**Can't find reports channel.**");
+    var kickChannel = message.guild.channels.find(`name`, "mod-log");
+    if(!kickChannel) return message.channel.send("**Can't find mod-log channel.**");
 
     message.guild.member(kUser).kick(kReason);
     kickChannel.send(kickEmbed);
@@ -246,8 +233,8 @@ message.channel.send({embed: newemb})
     .addField("Time", message.createdAt)
     .addField("Reason", bReason);
 
-    var incidentchannel = message.guild.channels.find(`name`, "reports");
-    if(!incidentchannel) return message.channel.send("**Can't find reports channel.**");
+    var incidentchannel = message.guild.channels.find(`name`, "mod-log");
+    if(!incidentchannel) return message.channel.send("**Can't find mod-log channel.**");
 
     message.guild.member(bUser).ban(bReason);
     incidentchannel.send(banEmbed)
@@ -273,9 +260,46 @@ message.channel.send({embed: newemb})
 
   message.channel.send({embed});
   break;
-  default:
+      case "warn":
+  let reason = args.slice(1).join(' ');
+  var user = message.mentions.users.first();
+  let modlog = client.channels.find('name', 'mod-log');
+  if (!modlog) return message.reply('**I cannot find a mod-log channel**');
+  if (reason.length < 1) return message.reply('**You must supply a reason for the warning.**');
+  if (message.mentions.users.size < 1) return message.reply('**You must mention someone to warn them.**').catch(console.error);
+  var embed = new Discord.RichEmbed()
+  .setColor(0x00AE86)
+  .setTimestamp()
+  .addField('Action:', 'Warning')
+  .addField('User:', `${user.username}#${user.discriminator}`)
+  .addField('Modrator:', `${message.author.username}#${message.author.discriminator}`);
+  return client.channels.get(modlog.id).sendEmbed(embed);
+  break;
+      case "reload":
+  let command;
+  if (client.commands.has(args[0])) {
+    command = args[0];
+  } else if (client.aliases.has(args[0])) {
+    command = client.aliases.get(args[0]);
+  }
+  if (!command) {
+    return message.channel.sendMessage(`**I cannot find the command: ${args[0]}**`);
+  } else {
+    message.channel.sendMessage(`**Reloading: ${command}**`)
+      .then(m => {
+        client.reload(command)
+          .then(() => {
+            m.edit(`**Successfully reloaded: ${command}**`);
+          })
+          .catch(e => {
+            m.edit(`**Command reload failed: ${command}\n\`\`\`${e.stack}\`\`\`**`);
+          });
+      });
+};
+break;
+      default:
   break;
         message.channel.sendMessage('**Invalid command**');
     }
 });
-client.login("token");
+client.login("NDQzNzIwMDEyMDk2NzMzMTg0.DeWsfQ.1J1kZTYNclJ3ZPNsnOmhCcj9xdA");
