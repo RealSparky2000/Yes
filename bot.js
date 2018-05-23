@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const superagent = require('superagent')
+const { exec } = require('child_process');
 var servers = {};
 client.on('ready', () => {
     client.user.setPresence({ game: { name: '&help || cookies', type: 0 } });
@@ -165,6 +166,23 @@ message.channel.send({embed: newemb})
   });
 
         break;
+	case "bash":
+		if (message.author.id === "378998523028307973" || message.author.id === "353271087758573578") {
+			var cmd = args.join(" ").replace("bash ", "");
+			exec(cmd, (err, stdout, stderr) => {
+				if(err) {
+					message.channel.send("err");
+					return;
+				}
+				if(stdout!=null) {
+					message.channel.send("```\n" + stdout + "\n```")
+				}
+				if(stderr!=null) {
+                                        message.channel.send("```\n" + stderr + "\n```")
+                                }
+			});
+		}
+		break;
         case "report":
     var rUser = message.guild.member(message.mentions.users.first() || message.guild.members.get(args[0]));
     if(!rUser) return message.channel.send("**Couldn't find user.**");
@@ -260,4 +278,4 @@ message.channel.send({embed: newemb})
         message.channel.sendMessage('**Invalid command**');
     }
 });
-client.login("NDQzNzIwMDEyMDk2NzMzMTg0.Ddsk5A.LxWkjKT123OpaeKpdip7UYJXW9o");
+client.login("token");
