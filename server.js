@@ -8,26 +8,17 @@ const moment = require("moment");
 require("moment-duration-format");
 let os = require('os')
 let cpuStat = require("cpu-stat")
-const YTDL = require("ytdl-core");
 const ms = require("ms");
 const help = require("./help").run;
+const YouTube = require('simple-youtube-api');
+const youtube = new YouTube(process.env.YOUTUBE_KEY);
+const YTDL = require("ytdl-core");
 client.on('ready', () => {
     client.user.setUsername('Ayerety')
     client.user.setPresence({ game: { name: '&help || Version 3.8.2', type: 0 } });
     console.log(`Ayerety is ready to explore a new world!`);
 });
-function play(connection, message) {
-    var server = servers[message.guild.id];
-    server.dispatcher = connection.playStream(YTDL(server.queue[0], { filter: "audioonly" }));
 
-    server.queue.shift();
-
-    server.dispatcher.on("end", function () {
-        if (server.queue[0]) play(connection, message);
-        else connection.disconnect();
-    });
-
-}
 var servers = {};
 var prefix = '&';
 client.on("message", async message => {
@@ -46,7 +37,7 @@ client.on("message", async message => {
             function resetBot(channel) {
                 message.react('✅')
                     .then(message => client.destroy())
-                    .then(() => client.login("NDQzNzIwMDEyMDk2NzMzMTg0.DesePg.ZYWNTM8h_RXhIgQglZu4ovR8BTE"));
+                    .then(() => client.login(process.env.SECRET));
                 message.channel.send("``Ayerety is sucessfully restarted!``")
             }
             break;
@@ -327,7 +318,7 @@ client.on("message", async message => {
                     .addField("• CPU", `\`\`\`md\n${os.cpus().map(i => `${i.model}`)[0]}\`\`\``)
                     .addField("• CPU usage", `\`${percent.toFixed(2)}%\``, true)
                     .addField("• Arch", `\`${os.arch()}\``, true)
-                    .addField("• Platform", `\`\`${os.platform()}\`\``, true)
+                    .addField("• Platform", "``Windows``", true)
                     .addField("Bot version", "3.8.2", true)
                     .setColor("#ffffff")
                 message.channel.send(embedStats);
@@ -445,6 +436,8 @@ client.on("message", async message => {
             message.channel.send(`<@${message.author.id}> pat ${args[0]}`, { embed: patEmb });
             break;
         case "mplay":
+	var searchString = args.slice(1).join(' ');
+  var url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
             if (!message.guild.member(client.user).hasPermission('SPEAK')) return message.channel.send('**Sorry, but i cant join/speak in this channel!**').catch(console.error);
             if (!args[1]) {
                 message.channel.send("**Please provide a URL YouTube link to me to play song.**");
@@ -456,10 +449,24 @@ client.on("message", async message => {
                 return;
             }
 
-            if (!message.member.voiceChannel) {
-                message.channel.send("**Sorry, but i cant search videos in YouTube! Provide a link to play!**");
-                return;
-            }
+            try {
+              var video = await youtube.getVideo(url);
+			} catch (error) {
+				try {
+					var videos = await youtube.searchVideos(searchString, 10);
+					var video = await youtube.getVideoByID(videos[0].id);
+          var video2 = await youtube.getVideoByID(video.id);
+          } catch (err) {
+            console.error(err);
+            return message.channel.send("**Nothing was found by your request.**");
+          }
+      }
+        console.log(video);
+        var song = {
+          id: video.id,
+          title: video.title,
+          url: `https://www.youtube.com/watch?v=${video.id}`
+        };
 
             if (!servers[message.guild.id]) servers[message.guild.id] = {
                 queue: []
@@ -469,7 +476,7 @@ client.on("message", async message => {
 
             server.queue.push(args[1]);
 
-            message.channel.sendMessage('``You song has been added to the queue.``')
+            message.channel.sendMessage(`🎶Song: **${song.title}** has been added to the queue!`);
             if (!message.guild.voiceConnection) message.member.voiceChannel.join().then(function (connection) {
                 play(connection, message);
             });
@@ -514,7 +521,18 @@ client.on("message", async message => {
             if (server.dispatcher) server.dispatcher.resume();
             message.channel.send('``The song is sucessfully continued.``');
             break;
-            message.channel.sendMessage("**Invalid command**");
-    }
+          }
+function play(connection, message) {
+    var server = servers[message.guild.id];
+    server.dispatcher = connection.playStream(YTDL(song.url))
+
+    server.queue.shift();
+
+    server.dispatcher.on("end", function () {
+        if (server.queue[0]) play(connection, message);
+        else connection.disconnect();
+    });
+
+}
 });
 client.login(process.env.SECRET);
