@@ -12,7 +12,7 @@ const ms = require("ms");
 const help = require("./help").run;
 const YouTube = require('simple-youtube-api');
 const ytdl = require('ytdl-core');
-const youtube = new YouTube(process.env.YOUTUBE_KEY);
+const youtube = new YouTube("AIzaSyDLe7QsJObaBae7gf3kueNrd6ntQD-mAnM");
 const queue = new Map();
 const figlet = require('figlet');
 client.on('ready', () => {
@@ -42,7 +42,7 @@ client.on("message", async message => {
             function resetBot(channel) {
                 message.react('✅')
                     .then(message => client.destroy())
-                    .then(() => client.login(process.env.SECRET));
+                    .then(() => client.login("NDQzNzIwMDEyMDk2NzMzMTg0.DfU0zQ.anmOvYvjxw5Hs7dmFdc9aGTdd4w"));
                 message.channel.send("``Ayerety is sucessfully restarted!``")
             }
             break;
