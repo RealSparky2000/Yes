@@ -1,8 +1,8 @@
-﻿const Discord = require('discord.js');
+const Discord = require('discord.js');
 exports.run = (client, message, args) => {
     var embed = new Discord.RichEmbed()
         .setTitle(`__Sent Help List for ${message.author.username}__`)
-        .setDescription('``Founded 29 command in Ayerety.``')
+        .setDescription('``Founded 33 command in Ayerety.``')
         .setAuthor('Ayerety', client.user.avatarURL)
         .setFooter(`Requested By ${message.author.username}#${message.author.discriminator}`)
         .setColor("#ffffff")
@@ -11,11 +11,11 @@ exports.run = (client, message, args) => {
 Owner: RealSparky#3858
 Team: Coders Of Discord**`)
         .addField(':hourglass: Commands For Help', `
-help > Sending help list.
-avatar > Shows your/others avatar.
-serverinfo > Shows info about server.
-weather > Predicting the weather.
-invite > Creates an invitation to the server.`)
+help > **Sending help list.**
+avatar > **Shows your/others avatar.**
+serverinfo > **Shows info about server.**
+weather > **Predicting the weather.**
+invite > **Creates an invitation to the server.**`)
         .addField(':gear: Commands For Bot Owners', `
 bash > **Searches files in memory.**
 restart > **Restarting bot.**
@@ -31,18 +31,24 @@ joke > **Sending Dads Joke in chat.**
 ping > **Playing a game.**
 8ball > **Predicts the future.**
 coinflip > **Playing with coin.**
-gif > **Pating someone with mention.**`)
+gif > **Pating someone with mention.**
+ascii > **Creating art with your word.**`)
         .addField(':wrench: Commands For Moderate', `
 ban > **Baning violators.**
+unban > **Unbaning violators.**
+warn > **Creating warning fot violators.**
 kick > **Kicking violators.**
 report > **Reporting violators.**
 clean > **Cleaning spam messages.**`)
         .addField(':headphones: Commands For Music', `
-mplay > **Adding to the queue you song.**
+mplay > **Sends a selection of songs.**
 mstop > **Stoping the song and leaving song channel.**
 mskip > **Skipping the song.**
 mpause > **Pausing the song.**
-mresume > **Contining the song.**`)
+mresume > **Contining the song.**
+mvolume > **Changing volume in the song.**
+mqueue > **Showing a queue of songs.**
+mnp > **Displays info about playing music.**`)
         .addField(':iphone: References', `
 **Invite Me:
 https://discordapp.com/api/oauth2/authorize?client_id=443720012096733184&permissions=2146958583&scope=bot**
@@ -50,4 +56,4 @@ https://discordapp.com/api/oauth2/authorize?client_id=443720012096733184&permiss
 https://discord.gg/w2ucYmm** `);
 
     message.channel.send({ embed });
-}
+}        
