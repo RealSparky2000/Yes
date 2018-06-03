@@ -11,11 +11,13 @@ let cpuStat = require("cpu-stat")
 const ms = require("ms");
 const help = require("./help").run;
 const YouTube = require('simple-youtube-api');
+const ytdl = require('ytdl-core');
 const youtube = new YouTube(process.env.YOUTUBE_KEY);
-const YTDL = require("ytdl-core");
+const queue = new Map();
+const figlet = require('figlet');
 client.on('ready', () => {
     client.user.setUsername('Ayerety')
-    client.user.setPresence({ game: { name: '&help || Version 3.8.2', type: 0 } });
+    client.user.setPresence({ game: { name: '&help || Version 4.9.2+', type: 0 } });
     console.log(`Ayerety is ready to explore a new world!`);
 });
 
@@ -24,6 +26,9 @@ var prefix = '&';
 client.on("message", async message => {
     var args = message.content.substring(prefix.length).split(" ");
     if (!message.content.startsWith(prefix)) return;
+  var searchString = args.slice(1).join(' ');
+	var url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
+	var serverQueue = queue.get(message.guild.id);
     switch (args[0].toLowerCase()) {
         case "ping":
             var newemb = new Discord.RichEmbed()
@@ -33,7 +38,7 @@ client.on("message", async message => {
             break;
         case 'restart':
             if (message.author.id !== "353271087758573578" && message.author.id !== "378998523028307973") return message.channel.send("``Sorry, but you cant restart bot!✖``");
-            resetBot(message.channel);
+       resetBot(message.channel);
             function resetBot(channel) {
                 message.react('✅')
                     .then(message => client.destroy())
@@ -283,17 +288,38 @@ client.on("message", async message => {
             break;
         case "unban":
             if (!message.guild.member(client.user).hasPermission('MANAGE_ROLES')) return message.channel.send('**I do not have the correct permissions.**').catch(console.error);
-            var reason = args.slice(1).join(' ');
-            var member = args[0];
-            var modlog = client.channels.find('name', 'mod-log');
-            if (!modlog) return message.channel.send('**I cannot find a mod-log channel**');
-            if (reason.length < 1) return message.channel.send('**You must supply a reason for the unban.**');
-            if (!user) return message.channel.send('**You must supply a User Resolvable, such as a user id.**').catch(console.error);
-            client.unbanReason = reason;
-            client.unbanAuth = message.author;
-            message.guild.unban(user);
-            message.channel.send(`Successfuly unbanned <@${user}>`)
+  var reason = args.slice(1).join(' ');
+  client.unbanReason = reason;
+  client.unbanAuth = message.author;
+  var user = args[0];
+  var modlog = client.channels.find('name', 'mod-log');
+  if (!modlog) return message.reply('I cannot find a mod-log channel');
+  if (reason.length < 1) return message.reply('You must supply a reason for the unban.');
+  if (!user) return message.reply('You must supply a User Resolvable, such as a user id.').catch(console.error);
+  message.guild.unban(user);
             break;
+      case "warn":
+        var reason = args.slice(1).join(' ');
+        var user = message.mentions.users.first();
+            var incidentchannel = message.guild.channels.find(`name`, "mod-log");
+            if (!incidentchannel) return message.channel.send("**Can't find mod-log channel.**");
+
+        if (!modlog) 
+            return message.reply('I cannot find a mod-log channel');
+
+        if (reason.length < 1) 
+            return message.reply('You must supply a reason for the warning.');
+
+        if (message.mentions.users.size < 1) 
+            return message.reply('You must mention someone to warn them.').catch(console.error);
+
+        var embed = new Discord.RichEmbed()
+            .setColor(0x8cff00)
+            .setTimestamp()
+            .setDescription(`**Action:** Warning\n**Target:** ${user.tag}\n**Moderator:** ${message.author.tag}\n**Reason:** ${reason}`);
+
+            incidentchannel.send(embed)
+        break;
         case "stats":
             if (message.author.id !== "353271087758573578" && message.author.id !== "378998523028307973") return message.channel.send("**You cant see the status embed!**");
             var cpuLol;
@@ -318,8 +344,8 @@ client.on("message", async message => {
                     .addField("• CPU", `\`\`\`md\n${os.cpus().map(i => `${i.model}`)[0]}\`\`\``)
                     .addField("• CPU usage", `\`${percent.toFixed(2)}%\``, true)
                     .addField("• Arch", `\`${os.arch()}\``, true)
-                    .addField("• Platform", "``Windows``", true)
-                    .addField("Bot version", "3.8.2", true)
+                    .addField("• Platform", `\`\`${os.platform()}\`\``,true)
+                    .addField("Bot version", "4.9.2+", true)
                     .setColor("#ffffff")
                 message.channel.send(embedStats);
             })
@@ -430,109 +456,192 @@ client.on("message", async message => {
                 return;
             }
 
-            if (!message.mentions.users.first()) return message.channel.send(`Please mention someone!`).then(msg => {
-                msg.delete(3000)
+            if (!message.mentions.users.first()) return message.channel.send(`Please mention someone!`).then(message => {
+                message.delete(3000)
             });
             message.channel.send(`<@${message.author.id}> pat ${args[0]}`, { embed: patEmb });
             break;
-        case "mplay":
-	var searchString = args.slice(1).join(' ');
-  var url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
-            if (!message.guild.member(client.user).hasPermission('SPEAK')) return message.channel.send('**Sorry, but i cant join/speak in this channel!**').catch(console.error);
-            if (!args[1]) {
-                message.channel.send("**Please provide a URL YouTube link to me to play song.**");
-                return;
-            }
+      case "ascii":
+  var maxLen = 14 // You can modify the max characters here
+  
+  if(args.join(' ').length > maxLen) return message.channel.send('Only 14 characters admitted!') 
+  
+  if(!args[0]) return message.channel.send('Please specify a text to asciify!');
+  
+  figlet(`${args.join(' ')}`, function(err, data) {
+      if (err) {
+          console.log('Something went wrong...');
+          console.dir(err);
+          return;
+      }
 
-            if (!message.member.voiceChannel) {
-                message.channel.send("**I think it may work better if you are in a voice channel!**");
-                return;
-            }
-
-            try {
-              var video = await youtube.getVideo(url);
+      message.channel.send(`${data}`, {code: 'AsciiArt'});
+  });
+break;
+      case "mplay":
+    var voiceChannel = message.member.voiceChannel;
+		if (!voiceChannel) return message.channel.send('I\'m sorry but you need to be in a voice channel to play music!');
+		var permissions = voiceChannel.permissionsFor(message.client.user);
+		if (!permissions.has('CONNECT')) {
+			return message.channel.send('I cannot connect to your voice channel, make sure I have the proper permissions!');
+		}
+		if (!permissions.has('SPEAK')) {
+			return message.channel.send('I cannot speak in this voice channel, make sure I have the proper permissions!');
+		}
+      if (url.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)) {
+			var playlist = await youtube.getPlaylist(url);
+			var videos = await playlist.getVideos();
+			for (const video of Object.values(videos)) {
+				var video2 = await youtube.getVideoByID(video.id); // eslint-disable-line no-await-in-loop
+				await handleVideo(video2, message, voiceChannel, true); // eslint-disable-line no-await-in-loop
+			}
+			return message.channel.send(`✅ Playlist: **${playlist.title}** has been added to the queue!`);
+		} else {
+			try {
+				var video = await youtube.getVideo(url);
 			} catch (error) {
 				try {
 					var videos = await youtube.searchVideos(searchString, 10);
-					var video = await youtube.getVideoByID(videos[0].id);
-          var video2 = await youtube.getVideoByID(video.id);
-          } catch (err) {
-            console.error(err);
-            return message.channel.send("**Nothing was found by your request.**");
-          }
-      }
-        console.log(video);
-        var song = {
-          id: video.id,
-          title: video.title,
-          url: `https://www.youtube.com/watch?v=${video.id}`
-        };
+					var index = 0;
+					message.channel.send(`
+__**Song selection:**__
+${videos.map(video2 => `**${++index} -** ${video2.title}`).join('\n')}
+Please provide a value to select one of the 🔎 results ranging from 1-10.
+					`);
+					// eslint-disable-next-line max-depth
+					try {
+						var response = await message.channel.awaitMessages(message2 => message2.content > 0 && message2.content < 11, {
+							maxMatches: 1,
+							time: 10000,
+							errors: ['time']
+						});
+					} catch (err) {
+						console.error(err);
+						return message.channel.send('No or invalid value entered, cancelling video selection.');
+					}
+					var videoIndex = parseInt(response.first().content);
+					var video = await youtube.getVideoByID(videos[videoIndex - 1].id);
+				} catch (err) {
+					console.error(err);
+					return message.channel.send('🆘 I could not obtain any search results.');
+				}
+			}
+			return handleVideo(video, message, voiceChannel);
+		}
+        break;
+      case "mskip":
+		if (!message.member.voiceChannel) return message.channel.send('You are not in a voice channel!');
+		if (!serverQueue) return message.channel.send('There is nothing playing that I could skip for you.');
+		serverQueue.connection.dispatcher.end('Skip command has been used!');
+		return undefined;
+        break;
+      case "mstop":
+		if (!message.member.voiceChannel) return message.channel.send('You are not in a voice channel!');
+		if (!serverQueue) return message.channel.send('There is nothing playing that I could stop for you.');
+		serverQueue.songs = [];
+		serverQueue.connection.dispatcher.end('Stop command has been used!');
+		return undefined;
+break;
+      case "mvolume":
+		if (!message.member.voiceChannel) return message.channel.send('You are not in a voice channel!');
+		if (!serverQueue) return message.channel.send('There is nothing playing.');
+		if (!args[1]) return message.channel.send(`The current volume is: **${serverQueue.volume}**`);
+		serverQueue.volume = args[1];
+		serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 5);
+		return message.channel.send(`I set the volume to: **${args[1]}**`);
+break;
+      case "mnp":
+		if (!serverQueue) return message.channel.send('There is nothing playing.');
+		return message.channel.send(`🎶 Now playing: **${serverQueue.songs[0].title}**`);
+break;
+      case "mqueue":
+		if (!serverQueue) return message.channel.send('There is nothing playing.');
+		return message.channel.send(`
+__**Song queue:**__
+${serverQueue.songs.map(song => `**-** ${song.title}`).join('\n')}
+**Now playing:** ${serverQueue.songs[0].title}
+	`);
+break;
+      case "mpause":
+		if (serverQueue && serverQueue.playing) {
+			serverQueue.playing = false;
+			serverQueue.connection.dispatcher.pause();
+			return message.channel.send('⏸ Paused the music for you!');
+		}
+		return message.channel.send('There is nothing playing.');
+break;
+      case "mresume":
+		if (serverQueue && !serverQueue.playing) {
+			serverQueue.playing = true;
+			serverQueue.connection.dispatcher.resume();
+			return message.channel.send('▶ Resumed the music for you!');
+		}
+		return message.channel.send('There is nothing playing.');
+	
 
-            if (!servers[message.guild.id]) servers[message.guild.id] = {
-                queue: []
-            };
+	return undefined;
+break;
+}
+async function handleVideo(video, message, voiceChannel, playlist = false) {
+	var serverQueue = queue.get(message.guild.id);
+	console.log(video);
+	var song = {
+		id: video.id,
+		title: video.title,
+		url: `https://www.youtube.com/watch?v=${video.id}`
+	};
+	if (!serverQueue) {
+		var queueConstruct = {
+			textChannel: message.channel,
+			voiceChannel: voiceChannel,
+			connection: null,
+			songs: [],
+			volume: 5,
+			playing: true
+		};
+		queue.set(message.guild.id, queueConstruct);
 
-            var server = servers[message.guild.id];
+		queueConstruct.songs.push(song);
 
-            server.queue.push(args[1]);
+		try {
+			var connection = await voiceChannel.join();
+			queueConstruct.connection = connection;
+			play(message.guild, queueConstruct.songs[0]);
+		} catch (error) {
+			console.error(`I could not join the voice channel: ${error}`);
+			queue.delete(message.guild.id);
+			return message.channel.send(`I could not join the voice channel: ${error}`);
+		}
+	} else {
+		serverQueue.songs.push(song);
+		console.log(serverQueue.songs);
+		if (playlist) return undefined;
+		else return message.channel.send(`✅ **${song.title}** has been added to the queue!`);
+	}
+	return undefined;
+}
+  function play(guild, song) {
+	var serverQueue = queue.get(guild.id);
 
-            message.channel.sendMessage(`🎶Song: **${song.title}** has been added to the queue!`);
-            if (!message.guild.voiceConnection) message.member.voiceChannel.join().then(function (connection) {
-                play(connection, message);
-            });
-            break;
-        case "mstop":
-            var server = servers[message.guild.id];
-            if (!message.member.voiceChannel) {
-                message.channel.send("**I think it may work better if you are in a voice channel!**");
-                return;
-            }
+	if (!song) {
+		serverQueue.voiceChannel.leave();
+		queue.delete(guild.id);
+		return;
+	}
+	console.log(serverQueue.songs);
 
-            if (message.guild.voiceConnection) message.guild.voiceConnection.disconnect();
-            message.channel.send('``The queue of songs removed.``');
-            break;
-        case "mskip":
-            if (!message.member.voiceChannel) {
-                message.channel.send("**I think it may work better if you are in a voice channel!**");
-                return;
-            }
+	var dispatcher = serverQueue.connection.playStream(ytdl(song.url))
+		.on('end', reason => {
+      message.channel.send(`The song **${song.title}** is end.`);
+			if (reason === 'Stream is not generating quickly enough.') console.log('Song ended.');
+			else console.log(reason);
+			serverQueue.songs.shift();
+			play(guild, serverQueue.songs[0]);
+		})
+		.on('error', error => console.error(error));
+	dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
 
-            var server = servers[message.guild.id];
-            if (server.dispatcher) server.dispatcher.end();
-            message.channel.send('``The song has been sucessfully skipped.``');
-            break;
-        case "mpause":
-            if (!message.member.voiceChannel) {
-                message.channel.send("**I think it may work better if you are in a voice channel!**");
-                return;
-            }
-
-            var server = servers[message.guild.id];
-            if (server.dispatcher) server.dispatcher.pause();
-            message.channel.send('``The song is paused.``');
-            break;
-        case "mresume":
-            if (!message.member.voiceChannel) {
-                message.channel.send("**I think it may work better if you are in a voice channel!**");
-                return;
-            }
-
-            var server = servers[message.guild.id];
-            if (server.dispatcher) server.dispatcher.resume();
-            message.channel.send('``The song is sucessfully continued.``');
-            break;
-          }
-function play(connection, message) {
-    var server = servers[message.guild.id];
-    server.dispatcher = connection.playStream(YTDL(song.url))
-
-    server.queue.shift();
-
-    server.dispatcher.on("end", function () {
-        if (server.queue[0]) play(connection, message);
-        else connection.disconnect();
-    });
-
+	serverQueue.textChannel.send(`🎶 Start playing: **${song.title}**`);
 }
 });
-client.login(process.env.SECRET);
+client.login("NDQzNzIwMDEyMDk2NzMzMTg0.DfU0zQ.anmOvYvjxw5Hs7dmFdc9aGTdd4w");
