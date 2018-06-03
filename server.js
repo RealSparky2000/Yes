@@ -41,7 +41,7 @@ client.on("message", async message => {
        resetBot(message.channel);
             function resetBot(channel) {
                 message.react('✅')
-                    .then(message => client.destroy())
+                    .then(message => client.destroy(process.env.BOT_TOKEN))
                     .then(() => client.login("NDQzNzIwMDEyMDk2NzMzMTg0.DfU0zQ.anmOvYvjxw5Hs7dmFdc9aGTdd4w"));
                 message.channel.send("``Ayerety is sucessfully restarted!``")
             }
@@ -644,4 +644,4 @@ async function handleVideo(video, message, voiceChannel, playlist = false) {
 	serverQueue.textChannel.send(`🎶 Start playing: **${song.title}**`);
 }
 });
-client.login("NDQzNzIwMDEyMDk2NzMzMTg0.DfU0zQ.anmOvYvjxw5Hs7dmFdc9aGTdd4w");
+client.login(process.env.BOT_TOKEN);
