@@ -1,8 +1,8 @@
 const Discord = require('discord.js');
 exports.run = (client, message, args) => {
-    var embed = new Discord.RichEmbed()
+    var embed = new Discord.RichEmbed() 
         .setTitle(`__Sent Help List for ${message.author.username}__`)
-        .setDescription('``Founded 33 command in Ayerety.``')
+        .setDescription('``Fouded 40 commands in Ayerety.``')
         .setAuthor('Ayerety', client.user.avatarURL)
         .setFooter(`Requested By ${message.author.username}#${message.author.discriminator}`)
         .setColor("#ffffff")
@@ -10,18 +10,23 @@ exports.run = (client, message, args) => {
 **Prefix: &
 Owner: RealSparky#3858
 Team: Coders Of Discord**`)
-        .addField(':hourglass: Commands For Help', `
-help > **Sending help list.**
-avatar > **Shows your/others avatar.**
-serverinfo > **Shows info about server.**
-weather > **Predicting the weather.**
-invite > **Creates an invitation to the server.**`)
-        .addField(':gear: Commands For Bot Owners', `
+            .addField(':gear: Commands For Bot Owners', `
 bash > **Searches files in memory.**
 restart > **Restarting bot.**
 stats > **Displaying bot statistics.**
 play > **Changing game staus**
-stream > **Changing stream status.**`)
+stream > **Changing stream status.**
+watch > **Changin watch status.**`)
+        .addField(':hourglass: Commands For Help', `
+help > **Sending help list.**
+botinfo > **Sending info about Ayrety.**
+avatar > **Shows your/others avatar.**
+serverinfo > **Shows info about server.**
+weather > **Predicting the weather.**
+invite > **Creates an invitation to the server.**
+membercount > **Counting members on the server.**
+hastebin > **Transfer your text to Hastebin.**
+emoji > **Shows all emojis on the server.**`)
         .addField(':bow_and_arrow: Commands For Fun', `
 cat > **Sending photos with a cat.**
 dog > **Sending photos with a dog.**
@@ -31,8 +36,9 @@ joke > **Sending Dads Joke in chat.**
 ping > **Playing a game.**
 8ball > **Predicts the future.**
 coinflip > **Playing with coin.**
-gif > **Pating someone with mention.**
-ascii > **Creating art with your word.**`)
+pat > **Pating someone with mention.**
+gif > **Sending to your DM's a gif image.**
+ascii > **Creating art with your word or sentence.**`)
         .addField(':wrench: Commands For Moderate', `
 ban > **Baning violators.**
 unban > **Unbaning violators.**
@@ -55,5 +61,6 @@ https://discordapp.com/api/oauth2/authorize?client_id=443720012096733184&permiss
 **Support:
 https://discord.gg/w2ucYmm** `);
 
-    message.channel.send({ embed });
+    message.author.send({ embed });
+  message.channel.send(`**Check your DM's ${message.author}!**`);
 }        
