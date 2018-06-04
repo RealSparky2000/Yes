@@ -9,15 +9,18 @@ require("moment-duration-format");
 let os = require('os')
 let cpuStat = require("cpu-stat")
 const ms = require("ms");
+const fs = require("fs");
 const help = require("./help").run;
 const YouTube = require('simple-youtube-api');
 const ytdl = require('ytdl-core');
 const youtube = new YouTube(process.env.YBAK);
 const queue = new Map();
 const figlet = require('figlet');
+const snekfetch = require('snekfetch');
+const gifSearch = require("gif-search");
 client.on('ready', () => {
     client.user.setUsername('Ayerety')
-    client.user.setPresence({ game: { name: '&help || Version 4.9.2+', type: 0 } });
+    client.user.setPresence({ game: { name: '&help || Final Version 5.0.1', type: 0 } });
     console.log(`Ayerety is ready to explore a new world!`);
 });
 
@@ -41,11 +44,22 @@ client.on("message", async message => {
        resetBot(message.channel);
             function resetBot(channel) {
                 message.react('✅')
-                    .then(message => client.destroy(process.env.BOT_TOKEN))
-                    .then(() => client.login("NDQzNzIwMDEyMDk2NzMzMTg0.DfU0zQ.anmOvYvjxw5Hs7dmFdc9aGTdd4w"));
+                    .then(message => client.destroy())
+                    .then(() => client.login(process.env.BOT_TOKEN));
                 message.channel.send("``Ayerety is sucessfully restarted!``")
             }
             break;
+      case "watch":
+var nameResult = args.join(' ');
+if (!nameResult) nameResult = null;
+client.user.setActivity(nameResult, {type: "WATCHING"});
+if (message.author.id !== "353271087758573578" && message.author.id !== "378998523028307973") return message.channel.send("**Sorry, but you cant change watch status!**");
+var embed = new Discord.RichEmbed()
+.setAuthor(`${message.author.tag}`, `${message.author.avatarURL}`)
+.setDescription(`**${nameResult} is now my new Playing Game.** (Set as WATCHING)`)
+.setColor("#ffffff")
+message.channel.send(embed)
+break;
         case "play":
             var gamestr = args.join(" ").replace("play ", "");
             if (message.author.id === "378998523028307973" || message.author.id === "353271087758573578") {
@@ -73,6 +87,35 @@ client.on("message", async message => {
                 message.channel.send({ embed });
             };
             break;
+      case "stats":
+  let cpuLol;
+  cpuStat.usagePercent(function(err, percent, seconds) {
+    if (err) {
+      return console.log(err);
+    }
+
+
+
+  var duration = moment.duration(client.uptime).format(" D [days], H [hrs], m [mins], s [secs]");
+  var embedStats = new Discord.RichEmbed()
+    .setTitle("*** Stats ***")
+    .setColor("RANDOM")
+    .addField("• Mem Usage", `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} / ${(os.totalmem() / 1024 / 1024).toFixed(2)} MB`, true)
+    .addField("• Uptime ", `${duration}`, true)
+    .addField("• Users", `${client.users.size.toLocaleString()}`, true)
+    .addField("• Servers", `${client.guilds.size.toLocaleString()}`, true)
+    .addField("• Channels ", `${client.channels.size.toLocaleString()}`, true)
+    .addField("• Discord.js", `v${version}`, true)
+    .addField("• Node", `${process.version}`, true)
+    .addField("• CPU", `\`\`\`md\n${os.cpus().map(i => `${i.model}`)[0]}\`\`\``)
+    .addField("• CPU usage", `\`${percent.toFixed(2)}%\``,true)
+    .addField("• Arch", `\`${os.arch()}\``,true)
+    .addField("• Platform", `\`\`${os.platform()}\`\``,true)
+    .addField("• Bot Version", "5.0.1 (Final Version)", true)
+    .setColor("#ffffff")
+    message.channel.send(embedStats)
+  });
+break;
         case "8ball":
             if (!args[0]) {
                 var errEmbed = new Discord.RichEmbed()
@@ -121,7 +164,7 @@ client.on("message", async message => {
             message.channel.send({ embed });
             break;
         case "help":
-            help(client, message, args);
+            help(client, message, args)
             break;
         case "info":
             var user = message.mentions.users.first() || message.author;
@@ -168,6 +211,14 @@ client.on("message", async message => {
                 .addField('•Roles', message.guild.roles.size, true);
             message.channel.send({ embed });
             break;
+      case "botinfo":
+  var embed = new Discord.RichEmbed()
+  .setColor("#ffffff")
+  .setTitle(`About Ayerety Bot`)
+  .setThumbnail(`${client.user.displayAvatarURL}`)
+  .addField("Info", `**Creation Date**: ${moment.utc(client.user.createdAt).format('dddd, MMMM Do YYYY, HH:mm:ss')}\n**ID**: ${message.client.user.id}\n**Owner**: RealSparky\n**Version**: 5.0.1 (Final Version)\n**Support Server**: https://discord.gg/Sjewjq`)
+  message.channel.send(embed);
+break;
         case "weather":
             var weather = require('weather-js');
             weather.find({ search: args.join(" "), degreeType: 'C' }, function (err, result) {
@@ -304,7 +355,7 @@ client.on("message", async message => {
             var incidentchannel = message.guild.channels.find(`name`, "mod-log");
             if (!incidentchannel) return message.channel.send("**Can't find mod-log channel.**");
 
-        if (!modlog) 
+        if (!modlog)
             return message.reply('I cannot find a mod-log channel');
 
         if (reason.length < 1) 
@@ -320,36 +371,30 @@ client.on("message", async message => {
 
             incidentchannel.send(embed)
         break;
-        case "stats":
-            if (message.author.id !== "353271087758573578" && message.author.id !== "378998523028307973") return message.channel.send("**You cant see the status embed!**");
-            var cpuLol;
-            cpuStat.usagePercent(function (err, percent, seconds) {
-                if (err) {
-                    return console.log(err);
-                }
+      case "membercount":
+  var sicon = message.guild.iconURL;
+	var embed = new Discord.RichEmbed()
+    .setAuthor('Ayerety', client.user.avatarURL)
+		.setColor("#ffffff")
+		.setThumbnail(sicon)
+		.addField('Members', `**${message.guild.memberCount}**`, true)
+		.addBlankField(true)
+		.addField('Humans', `**${message.guild.members.filter(member => !member.user.bot).size}**`, true)
+		.addField('Bots', `**${message.guild.members.filter(member => member.user.bot).size}**`, true)
+		.addField('Member Status', `**${message.guild.members.filter(o => o.presence.status === 'online').size}** Online\n**${message.guild.members.filter(i => i.presence.status === 'idle').size}** Idle/Away\n**${message.guild.members.filter(dnd => dnd.presence.status === 'dnd').size}** Do Not Disturb\n**${message.guild.members.filter(off => off.presence.status === 'offline').size}** Offline/Invisible\n**${message.guild.members.filter(s => s.presence.status === 'streaming').size}** Streaming`)
+		.setFooter(`Owner: ${message.guild.owner.user.tag}`)
+	message.channel.send(embed);
+break;
 
-
-
-                var duration = moment.duration(client.uptime).format(" D [days], H [hrs], m [mins], s [secs]");
-                var embedStats = new Discord.RichEmbed()
-                    .setTitle("*** Stats ***")
-                    .setColor("RANDOM")
-                    .addField("• Mem Usage", `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} / ${(os.totalmem() / 1024 / 1024).toFixed(2)} MB`, true)
-                    .addField("• Uptime ", `${duration}`, true)
-                    .addField("• Users", `${client.users.size.toLocaleString()}`, true)
-                    .addField("• Servers", `${client.guilds.size.toLocaleString()}`, true)
-                    .addField("• Channels ", `${client.channels.size.toLocaleString()}`, true)
-                    .addField("• Discord.js", `v${version}`, true)
-                    .addField("• Node", `${process.version}`, true)
-                    .addField("• CPU", `\`\`\`md\n${os.cpus().map(i => `${i.model}`)[0]}\`\`\``)
-                    .addField("• CPU usage", `\`${percent.toFixed(2)}%\``, true)
-                    .addField("• Arch", `\`${os.arch()}\``, true)
-                    .addField("• Platform", `\`\`${os.platform()}\`\``,true)
-                    .addField("Bot version", "4.9.2+", true)
-                    .setColor("#ffffff")
-                message.channel.send(embedStats);
-            })
-            break;
+      case "dog":
+            var { body } = await superagent
+    .get('https://dog.ceo/api/breeds/image/random');
+    var embed = new Discord.RichEmbed()
+    .setColor("ffffff")
+    .setTitle("Woof :dog2:")
+    .setImage(body.message)
+    message.channel.send({embed})
+        break;
         case "cat":
             var { body } = await superagent
                 .get(`http://aws.random.cat/meow`);
@@ -439,7 +484,7 @@ client.on("message", async message => {
             message.channel.send({ embed: buyEmb })
 
             break;
-        case "gif":
+        case "pat":
             if (message.mentions.users.size < 1) return message.channel.send('**You must mention someone to send pat gif them.**').catch(console.error);
             var images = ["https://cdn.discordapp.com/attachments/424667806320033814/437807617965031424/unnamed_1.gif", "https://cdn.glitch.com/5df641e3-8d98-4abb-9045-d5482434003a%2FJake_pat.gif?1524497996034", "https://media.tenor.com/images/cdc004bbbaba6f60d8e62a1f127516e0/tenor.gif"];
             var rand = Math.floor(Math.random() * images.length);
@@ -462,9 +507,9 @@ client.on("message", async message => {
             message.channel.send(`<@${message.author.id}> pat ${args[0]}`, { embed: patEmb });
             break;
       case "ascii":
-  var maxLen = 14 // You can modify the max characters here
+  var maxLen = 30// You can modify the max characters here
   
-  if(args.join(' ').length > maxLen) return message.channel.send('Only 14 characters admitted!') 
+  if(args.join(' ').length > maxLen) return message.channel.send('Only 30 characters admitted!') 
   
   if(!args[0]) return message.channel.send('Please specify a text to asciify!');
   
@@ -477,6 +522,43 @@ client.on("message", async message => {
 
       message.channel.send(`${data}`, {code: 'AsciiArt'});
   });
+break;
+      case "hastebin":
+	if (!args.slice(0)
+		.join(' ')) return message.channel.send('Please, provide the text! **Usage: &hastebin <text>**')
+		.then(msg => msg.delete({
+			timeout: 10000
+		}));
+	snekfetch.post('https://hastebin.com/documents')
+		.send(args.slice(0)
+			.join(' '))
+		.then(body => {
+			message.channel.send('**Posted text to Hastebin\nURL:** https://hastebin.com/' + body.body.key);
+		});
+        break;
+      case "emoji":
+        var emojis;
+        if (message.guild.emojis.size === 0) emojis = 'There are no emojis on this server.';
+        else emojis = `**Emojis for ${message.guild.name}**\n${message.guild.emojis.map(e => e).join(' ')}`;
+        message.channel.send(emojis);
+  break;
+      case "gif":
+  if (message.author.bot) return;
+  if (message.channel.type == "dm") return;
+
+    if (!args[0]) return message.channel.send("Undefined! **Usage: gif <gname>**");
+
+    gifSearch.random(args[0]).then(
+        gifUrl => {
+
+        let randomcolor = ((1 << 24) * Math.random() | 0).toString(16) //Optional
+        var embed = new Discord.RichEmbed()
+            .setColor("#ffffff")
+            .setImage(gifUrl)
+        message.author.send(embed);
+    });
+
+    message.channel.send(`<@${message.author.id}> **check your dm!** :postbox:`);
 break;
       case "mplay":
     var voiceChannel = message.member.voiceChannel;
@@ -582,7 +664,7 @@ break;
 	return undefined;
 break;
 }
-async function handleVideo(video, message, voiceChannel, playlist = false) {
+  async function handleVideo(video, message, voiceChannel, playlist = false) {
 	var serverQueue = queue.get(message.guild.id);
 	console.log(video);
 	var song = {
@@ -642,6 +724,6 @@ async function handleVideo(video, message, voiceChannel, playlist = false) {
 	dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
 
 	serverQueue.textChannel.send(`🎶 Start playing: **${song.title}**`);
-}
+  }
 });
 client.login(process.env.BOT_TOKEN);
