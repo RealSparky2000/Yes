@@ -1,0 +1,189 @@
+const Discord = require("discord.js");
+const Enmap = require("enmap");
+const fs = require("fs");
+const client = new Discord.Client();
+const config = require("./config.json");
+let cooldown = new Set();
+const active = new Map();
+let cdseconds = 5;
+client.config = config;
+client.on('ready', () => {
+  console.log("entering");
+  console.log(`Also in me ${client.users.size} users from ${client.guilds.size} servers.`); 
+  client.user.setActivity(`${config.prefix}help (altir.bitoryn.xyz)`, {type: "STREAMING"});
+});
+client.on("guildMemberAdd", (member) => {
+  const welcomeChannel = member.guild.channels.find('name', 'new-members') || member.guild.channels.find('name', 'добро-пожаловать');
+  if(!welcomeChannel) return;
+  if(welcomeChannel){
+     let WelcomeEmbed = new Discord.RichEmbed()
+    .setTitle("New member!")
+    .setAuthor(member.guild.name, member.guild.iconURL)
+    .setThumbnail(member.user.displayAvatarURL)
+    .setDescription(`Hello ${member.user.username} on ${member.guild.name}!\nTake a seat at the fire :)`)
+    .setColor(config.embedcolor)
+    .setFooter(`You are ${member.guild.memberCount} member.`)
+    .setTimestamp();
+    welcomeChannel.send(WelcomeEmbed);
+  }
+});
+client.on("guildMemberUpdate", (oldMember, newMember) => {
+  const logChannel = oldMember.guild.channels.find('name', 'altir-log');
+  if(!logChannel) return;
+  if(logChannel){
+      if(oldMember.displayName !== newMember.displayName){
+         let logEmbed = new Discord.RichEmbed()
+        .setTitle("Nickname changed!")
+        .setAuthor(newMember.guild.name, newMember.guild.iconURL)
+        .setThumbnail(newMember.user.displayAvatarURL)
+        .setDescription(`**[OLD]**: ${oldMember.displayName}\n**[NEW]**: ${newMember.displayName}`)
+        .setColor(config.embedcolor)
+        .setFooter(`Logs beta`)
+        .setTimestamp();
+        logChannel.send(logEmbed);
+      }
+      if(oldMember.roles.size !== newMember.roles.size){
+          if(newMember.roles.size.lenght === 0) newMember.roles.size = "nothing";
+          if(oldMember.roles.size.lenght === 0) oldMember.roles.size = "nothing";
+          let logEmbed = new Discord.RichEmbed()
+          .setTitle("Given/Remove roles")
+          .setAuthor(oldMember.displayName)
+          .setThumbnail(newMember.user.displayAvatarURL)
+          .setDescription(`**[OLD]**: ${oldMember.roles.array().join(" ").replace("@everyone", "")}\n**[NOW]**: ${newMember.roles.array().join(" ").replace("@everyone", "")}`)
+          .setColor(config.embedcolor)
+          .setFooter(`Logs beta`)
+          .setTimestamp();
+          logChannel.send(logEmbed);
+      }
+  }
+});
+client.on("emojiCreate", emoji => {
+  const logChannel = emoji.guild.channels.find('name', "altir-log");
+  if(!logChannel) return;
+  if(logChannel){
+      let logEmbed = new Discord.RichEmbed()
+      .setTitle("New emoji")
+      .setAuthor(emoji.name, emoji.guild.iconURL)
+      .setThumbnail(emoji.url)
+      .setDescription(`\`\`New emoji with name\`\`: ${emoji.name}\n**Animated**: ${emoji.animated}`)
+      .setColor(config.embedcolor)
+      .setFooter(`Logs beta`)
+      .setTimestamp();
+      logChannel.send(logEmbed);
+  }
+});
+client.on("emojiUpdate", (oldEmoji, newEmoji) => {
+  const logChannel = oldEmoji.guild.channels.find('name', "altir-log");
+  if(!logChannel) return;
+  if(logChannel){
+      let logEmbed = new Discord.RichEmbed()
+      .setTitle("Emoji updated")
+      .setAuthor(oldEmoji.guild.name, oldEmoji.guild.iconURL)
+      .setThumbnail(emoji.url)
+      .setDescription(`**\`Old emoji name\`**: \`${oldEmoji.name}\`\n**\`New emoji name\`**: \`${newEmoji.name}\``)
+      .setColor(config.embedcolor)
+      .setFooter(`Logs beta`)
+      .setTimestamp();
+      logChannel.send(logEmbed);
+  }
+});
+client.on("guildBanAdd", (guild, user) => {
+  const logChannel = guild.channels.find('name', 'altir-log');
+  if(!logChannel) return;
+  if(logChannel){
+        let logEmbed = new Discord.RichEmbed()
+        .setTitle("Banned!")
+        .setAuthor(guild.name, guild.iconURL)
+        .setThumbnail(user.displayAvatarURL)
+        .setDescription(`**${user.tag}** was banned! (id: ${user.id})`)
+        .setColor(config.embedcolor)
+        .setFooter(`Logs beta`)
+        .setTimestamp();
+        logChannel.send(logEmbed);
+  }
+});
+client.on("guildBanRemove", (guild, user) => {
+  const logChannel = guild.channels.find('name', 'altir-log');
+  if(!logChannel) return;
+  if(logChannel){
+         let logEmbed = new Discord.RichEmbed()
+        .setTitle("Unbanned!")
+        .setAuthor(guild.name, guild.iconURL)
+        .setThumbnail(user.displayAvatarURL)
+        .setDescription(`**${user.tag}** was unbanned! (id: ${user.id})`)
+        .setColor(config.embedcolor)
+        .setFooter(`Logs beta`)
+        .setTimestamp();
+        logChannel.send(logEmbed);
+  }
+});
+client.on("guildMemberRemove", (member) => {
+  const byeChannel = member.guild.channels.find('name', 'bye-members') || member.guild.channels.find('name', 'прощай');
+  if(byeChannel) {
+    let byeEmbed = new Discord.RichEmbed()
+    .setTitle("Someone left from server!")
+    .setAuthor(member.guild.name, member.guild.iconURL)
+    .setThumbnail(member.user.displayAvatarURL)
+    .setDescription(`Bye ${member.user.username}, see you soon!`)
+    .setColor(config.embedcolor)
+    .setFooter(`We currently have ${member.guild.memberCount} members!`)
+    .setTimestamp();
+    byeChannel.send(byeEmbed);
+  }
+});
+client.on("guildCreate", guild => {
+  console.log(`New server!: ${guild.name} (id: ${guild.id}). On this server ${guild.memberCount} users!`);
+  guild.owner.sendMessage(`So hello, this bot by ${guild.client.users.get("299917043484983296").tag}(${guild.client.users.get("299917043484983296")}). Bot prefix - ${prefix}\n For you one command is allowed, its allowed for me and testers of bot - command ${prefix}say <text>. Write, and i will write this too.\n Bot support "new and leave member/logs system". Just create channels with name "new-members", "bye-members" and "altir-log". E :)`);
+  let guildCreate = new Discord.RichEmbed()
+  .setColor(`RANDOM`)
+  .addField("Someone added my bot, server name:", guild.name) 
+  .addField("And their owner id was:", `${guild.owner.id} (${guild.owner.tag})`)
+  .addField("With guild ID: ", guild.id);
+  
+  client.users.get("299917043484983296").send(guildCreate);
+});
+
+client.on("guildDelete", guild => {
+  console.log(`Minus server!: ${guild.name} (id: ${guild.id})`);
+});
+client.on("message", message => {
+    let msg = message.content.toUpperCase();
+    if(message.author.bot) return;
+    if(message.content.indexOf(client.config.prefix) !== 0) return;
+    if(cooldown.has(message.author.id)){
+    message.delete();
+    return message.reply("please, wait `5` seconds (cooldown)").then(message => {
+            setTimeout(() => {
+                message.delete();
+            }, 3000);
+        });
+    }
+        if(!message.member.hasPermission("ADMINISTRATOR")){
+            cooldown.add(message.author.id);
+    }
+    setTimeout(() => {
+        cooldown.delete(message.author.id);
+    }, cdseconds * 1000);
+    const args = message.content.slice(client.config.prefix.length).trim().split(/ +/g);
+    let ops = { 
+        ownerID: 299917043484983296,
+        active: active 
+        
+    }
+    const command = args.shift().toLowerCase();
+    const cmd = client.commands.get(command);
+    if (!cmd) return;
+    cmd.run(client, message, args, ops);
+});
+client.commands = new Enmap();
+fs.readdir("./commands/", (err, files) => {
+    if (err) return console.error(err);
+    files.forEach(file => {
+        if (!file.endsWith(".js")) return;
+        let props = require(`./commands/${file}`);
+        let commandName = file.split(".")[0];
+        console.log(`Command ${commandName}!`);
+        client.commands.set(commandName, props);
+  });
+});
+client.login(config.token);
